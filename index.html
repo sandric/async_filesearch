@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+    <style>
+
+        #matches
+        {
+            width: 600px;
+            margin-top: 50px;
+        }
+
+        #fileName
+        {
+            font-size: small;
+            color: gray;
+        }
+
+        #allDone
+        {
+            font-size: small;
+            color: green;
+        }
+        .foundItem
+        {
+            margin-left: 50px;
+            font-size: 12pt;
+            text-align: left;
+        }
+
+    </style>
+
+    <title>task 2</title>
+
+
+    <script type="text/javascript" src="jquery.js"></script>
+
+    <script type = "text/javascript">
+
+        var lastFound;
+        function currentFilePrinter()
+        {
+
+            $.post("searchData2JSON.php",   { "lastFound": lastFound },
+                                            function(data)
+                                            {
+                                                $("#fileName").html(data.currentFileSearching);
+
+                                                if(data.matches)
+                                                {
+                                                    $("#matches").html("");
+                                                    for(i in data.matches)
+                                                        if(i % 2)
+                                                            $("#matches").html($("#matches").html() + "<div class = 'foundItem' style = 'background-color: #5ab8d0'>" + data.matches[i] + "</div>");
+                                                        else
+                                                            $("#matches").html($("#matches").html() + "<div class = 'foundItem'>" + data.matches[i] + "</div>");
+
+                                                    lastFound = data.lastFound;
+                                                }
+                                            },
+                                            "json"
+            );
+        }
+
+        $(document).ready(function(){
+
+            $("#startButton").click(function()
+            {
+
+                $("#allDone").html("&nbsp");
+                $("#matches").html("");
+                $("#searchingTitle").show();
+
+                lastFound = 0;
+                intervalId = setInterval("currentFilePrinter()",10);
+
+                $.post( "iterator.php",
+                        $('form').serialize(),
+                        function(data)
+                        {
+
+                            currentFilePrinter();
+                            clearInterval(intervalId);
+
+                            if(data != "")
+                                $("#allDone").html(data);
+                            else
+                                $("#allDone").html("all done!");
+                        },
+                        "html"
+                );
+            });
+        });
+
+    </script>
+
+</head>
+<body>
+
+    <div align = "center">
+
+        <form id = "form">
+
+            <div><b>*</b> &nbsp &nbsp <small>for</small> &nbsp &nbsp <b>.*</b> &nbsp &nbsp &nbsp &nbsp <small>and</small> &nbsp &nbsp &nbsp &nbsp <b>?</b> &nbsp &nbsp <small>for</small> &nbsp &nbsp <b>.?</b></div>
+
+            <input type="text" name = "stringPattern" style="width: 400px; height: 50px; font-size: 16pt; margin-bottom: 20px; text-align: center" value = "ololo"/>
+            </br>
+            <input type="checkbox" name = "fileNameSearch" checked = true><small>search in file names</small></input>
+            <input type="checkbox" name = "fileTextSearch" checked = true><small>search in file text</small></input>
+            <input type="checkbox" name = "subDirectoriesSearch" checked = true><small>search in subdirectories</small></input>
+            </br>
+            <input type="button" id = "startButton" value = "RUN" style="margin-top: 20px;"/>
+        </form>
+        
+        <span id = "searchingTitle" style = "font-size: small; display: none">searching for file:</span>
+        <span id = "fileName"></span>
+        <div id = "allDone"></div>
+        <br/>
+        <div id = "matches"></div>
+        
+    </div>
+</body>
+</html>
